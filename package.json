@@ -1,0 +1,16 @@
+{
+  "name": "dmx-controlla",
+  "version": "1.0.0",
+  "description": "fancy dmx show control",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm test"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dmx": "^0.2.5",
+    "node-osc": "^5.2.3"
+  },
+  "type": "module"
+}
