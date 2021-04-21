@@ -35,10 +35,7 @@ export class LightingController {
     this.addOscHandlers()
     this.dmxController.start()
 
-    // this.currentAnimation = {
-    //   animationName: "fourByFourStrobe",
-    //   args: { bpm: this.bpm, iterations: 1 }
-    // }
+
     const color = {
       r: 0,
       g: 0,
@@ -81,6 +78,10 @@ export class LightingController {
     this.currentlyRunningAnimation = this.dmxController.runAnimation(this.currentAnimation)
   }
 
+  startAnimationLoop = () => {
+    this.handleDownbeat()
+  }
+
   handleDownbeat = msg => {
     console.log(msg, this.bar)
     if (this.bar === 3) {
@@ -96,38 +97,35 @@ export class LightingController {
     }
   }
 
-  startAnimationLoop = () => {
+  handleStart = () => {
+    console.log("start message received")
+    this.startAnimationLoop()
+  }
+
+  handleSelectAnimation = msg => {
+    console.log(msg)
     const color = {
       r: 0,
       g: 0,
       b: 255,
       w: 0
     }
-
-    // this.dmxController.runAnimation({
-    //   animationName: "changeColor",
-    //   iterations: 1,
-    //   args: { color, duration: 1 },
-    // })
-    this.handleDownbeat()
+    this.currentAnimation = {
+      animationName: "fourByFourStrobe",
+      args: { bpm: this.bpm, color },
+      type: AnimationType.Loop
+    }
   }
 
-  handleStart = () => {
-    console.log("start message received")
-    this.startAnimationLoop()
+  handleUpdateBpm = msg => {
+    this.bpm = msg.data
   }
 
   addOscHandlers() {
     this.oscServer.addMessageHandler("/dmx-controlla/start", this.handleStart)
     this.oscServer.addMessageHandler("/dmx-controlla/downbeat", this.handleDownbeat)
-
-    this.oscServer.addMessageHandler("/dmx-controlla/bpm", msg => {
-      this.bpm = msg.data
-    })
-
-    this.oscServer.addMessageHandler("/dmx-controlla/animation", msg => {
-      console.log(msg)
-    })
+    this.oscServer.addMessageHandler("/dmx-controlla/bpm", this.handleUpdateBpm)
+    this.oscServer.addMessageHandler("/dmx-controlla/animation", this.handleSelectAnimation)
 
     this.oscServer.addMessageHandler("/dmx-controlla/color", msg => {
       console.log(msg)

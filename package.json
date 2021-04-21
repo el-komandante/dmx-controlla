@@ -2,8 +2,10 @@
   "name": "dmx-controlla",
   "version": "1.0.0",
   "description": "fancy dmx show control",
-  "main": "index.js",
+  "main": "./dist/index.js",
   "scripts": {
+    "start": "node .",
+    "build": "tsc",
     "test": "npm test"
   },
   "author": "",
@@ -12,5 +14,8 @@
     "dmx": "^0.2.5",
     "node-osc": "^5.2.3"
   },
-  "type": "module"
+  "type": "module",
+  "devDependencies": {
+    "typescript": "^4.2.4"
+  }
 }

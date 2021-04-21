@@ -1,6 +1,6 @@
-import { LightingController } from "./controller/index.js"
-import { OscServer } from "./osc/index.js"
-import { DmxController } from "./dmx/index.js"
+import { LightingController } from "./src/controller/index.js"
+import { OscServer } from "./src/osc/index.js"
+import { DmxController } from "./src/dmx/index.js"
 
 
 const osc = new OscServer("0.0.0.0", "3333")

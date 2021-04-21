@@ -12,6 +12,7 @@ export const fourByFourStrobe = ({ fixtures, bpm, color }) => {
     acc[pixel.Red] = color.r
     acc[pixel.Green] = color.g
     acc[pixel.Blue] = color.b
+    acc[pixel.White] = color.w
     acc[pixel.Dimmer] = 255
     return acc
   }, {})
@@ -152,6 +153,19 @@ export const dim = ({ fixtures, duration, brightness }) => {
   }, {})
   animation.add(dmxValues, duration)
   return animation
+}
+
+export const fadeColor = ({ fixtures, color, bpm }) => {
+  const animation = new DMX.Animation()
+  const pixels = pixelsFromFixtures(fixtures)
+  const msPerBeat = bpmToMs(bpm)
+  const dmxValues = pixels.reduce((acc, pixel) => {
+    acc[pixel.Red] = color.r
+    acc[pixel.Green] = color.g
+    acc[pixel.Blue] = color.b
+    acc[pixel.White] = color.w
+  }, {})
+  animation.add(dmxValues, msPerBeat * 4)
 }
 
 export default {
