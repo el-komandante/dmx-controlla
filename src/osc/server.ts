@@ -1,7 +1,19 @@
 import { Server } from "node-osc"
 
+interface OscMessage {
+  address: string;
+  data: boolean | number | string
+}
+
+type OscHandlerFunc = (msg: OscMessage) => void;
+
 export class OscServer {
-  constructor(addr, port) {
+  public addr: string;
+  public port: string;
+  public server: Server;
+  public handlers: { [key: string]: [OscHandlerFunc] }
+
+  constructor(addr: string, port) {
     this.addr = addr
     this.port = port
     this.server = null
@@ -27,7 +39,7 @@ export class OscServer {
     }
   }
 
-  addMessageHandler = (address, handlerFunc) => {
+  addMessageHandler = (address: string, handlerFunc: OscHandlerFunc) => {
     if (!this.handlers[address]) {
       this.handlers[address] = [handlerFunc]
     } else {

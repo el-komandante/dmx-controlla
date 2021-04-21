@@ -4,7 +4,7 @@
   "description": "fancy dmx show control",
   "main": "./dist/index.js",
   "scripts": {
-    "start": "node .",
+    "start": "tsc && node .",
     "build": "tsc",
     "test": "npm test"
   },
@@ -16,6 +16,7 @@
   },
   "type": "module",
   "devDependencies": {
+    "@types/node": "^14.14.41",
     "typescript": "^4.2.4"
   }
 }

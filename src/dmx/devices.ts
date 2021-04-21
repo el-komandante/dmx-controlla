@@ -1,4 +1,17 @@
-const generateAX1Pixel = (pixelNum, startAddress) => {
+
+export interface Ax1Pixel {
+  Dimmer: number;
+  Red: number;
+  Green: number;
+  Blue: number;
+  White: number;
+  Strobe: number;
+}
+
+export interface Ax1Fixture {
+  [pixelName: string]: Ax1Pixel
+}
+const generateAX1Pixel = (pixelNum: number, startAddress: number): Ax1Pixel => {
   const startAddressOffset = startAddress - 1
   const pixelNumOffset = (pixelNum - 1) * 6
   const offset = startAddressOffset + pixelNumOffset
@@ -12,7 +25,7 @@ const generateAX1Pixel = (pixelNum, startAddress) => {
   }
 }
 
-const generateAX1 = (startAddress) => {
+const generateAX1 = (startAddress: number): Ax1Fixture => {
   let ax1 = {}
   for (let i = 1; i <= 16; i++) {
     ax1 = {...ax1, [`Pixel${i}`]: {...generateAX1Pixel(i, startAddress)}}
