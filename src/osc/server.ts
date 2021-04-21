@@ -2,7 +2,17 @@ import { Server } from "node-osc"
 
 export interface OscMessage {
   address: string;
-  data: boolean | number | string
+  data: OscData
+}
+
+export type OscData = boolean | number | string
+
+export interface OscTextMessage extends OscMessage {
+  data: string;
+}
+
+export interface OscNumericMessage extends OscMessage {
+  data: number;
 }
 
 export type OscHandlerFunc = (msg: OscMessage) => void;
@@ -32,6 +42,7 @@ export class OscServer {
   }
 
   handleMessage = (msg) => {
+    console.log(msg)
     const [ address, data ] = msg
     const handlers = this.handlers[address]
     if (handlers) {

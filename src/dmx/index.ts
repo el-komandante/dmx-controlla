@@ -1,1 +1,1 @@
-export * from "./dmx-controller.js"
+export * from "./dmx-controller"

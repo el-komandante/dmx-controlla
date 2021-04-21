@@ -4,7 +4,7 @@
   "description": "fancy dmx show control",
   "main": "./dist/index.js",
   "scripts": {
-    "start": "tsc && node .",
+    "start": "tsc && node --experimental-specifier-resolution=node .",
     "build": "tsc",
     "test": "npm test"
   },

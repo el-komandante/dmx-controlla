@@ -1,6 +1,6 @@
 import { DmxController } from "../dmx"
-import { AnimationArgs } from "../dmx/animations"
-import { OscMessage, OscServer } from "../osc";
+import { AnimationArgs, animationIdsToNames } from "../dmx/animations"
+import { OscMessage, OscNumericMessage, OscServer } from "../osc";
 
 interface Animation {
   animationName: string;
@@ -80,11 +80,10 @@ export class LightingController {
   }
 
   startAnimationLoop = () => {
-    this.handleDownbeat()
+    this.handleDownbeat(null)
   }
 
-  handleDownbeat = msg => {
-    console.log(msg, this.bar)
+  handleDownbeat = (_msg) => {
     if (this.bar === 3) {
       this.maybeRunAccentAnimation()
     } else {
@@ -103,23 +102,24 @@ export class LightingController {
     this.startAnimationLoop()
   }
 
-  handleSelectAnimation = (_msg: OscMessage) => {
-    console.log(_msg)
-    const color = {
-      r: 0,
-      g: 0,
-      b: 255,
-      w: 0
-    }
-    this.currentAnimation = {
-      animationName: "fourByFourStrobe",
-      args: { bpm: this.bpm, color },
-      type: AnimationType.Loop
-    }
+  handleSelectAnimation = (msg: OscNumericMessage) => {
+    this.nextAnimation = animationIdsToNames[Math.round(msg.data)]
+    console.log(msg)
+    // const color = {
+    //   r: 0,
+    //   g: 0,
+    //   b: 255,
+    //   w: 0
+    // }
+    // this.currentAnimation = {
+    //   animationName: "fourByFourStrobe",
+    //   args: { bpm: this.bpm, color },
+    //   type: AnimationType.Loop
+    // }
   }
 
   handleUpdateBpm = (msg: OscMessage) => {
-    this.bpm = msg.data
+    // this.bpm = msg.data
   }
 
   addOscHandlers() {
