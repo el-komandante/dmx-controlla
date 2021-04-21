@@ -1,8 +1,39 @@
 import DMX from "dmx";
-import { bpmToMs, pixelsFromFixtures, pixelsFromFixture } from "./utils.js"
+import { Ax1Fixture, Ax1FixtureSet } from "./devices.js";
+import { bpmToMs, pixelsFromFixtures, pixelsFromFixture, Color } from "./utils.js"
+
+export interface FourByFourStrobeArgs {
+  fixtures: Ax1FixtureSet;
+  bpm: number;
+  color: Color;
+}
+
+export interface PixelChaseArgs {
+  fixtures: Ax1FixtureSet;
+  pixelLength: number;
+  bpm: number;
+  color: Color;
+}
+
+export interface ChangeColorArgs {
+  fixtures: Ax1FixtureSet;
+  color: Color;
+  duration: number;
+}
+
+export interface ExpandArgs {
+  fixtures: Ax1FixtureSet;
+  bpm: number;
+  pxPerStep: number;
+}
+
+export type AnimationArgs = FourByFourStrobeArgs
+| PixelChaseArgs
+| ChangeColorArgs
+| ExpandArgs
 
 
-export const fourByFourStrobe = ({ fixtures, bpm, color }) => {
+export const fourByFourStrobe = ({ fixtures, bpm, color }: FourByFourStrobeArgs) => {
   const animation = new DMX.Animation({ loop: 4 })
   const pixels = pixelsFromFixtures(fixtures)
   const beatLength = bpmToMs(bpm)
@@ -30,7 +61,7 @@ export const fourByFourStrobe = ({ fixtures, bpm, color }) => {
   return animation
 }
 
-export const pixelChase = ({ fixtures, pixelLength, bpm, color }) => {
+export const pixelChase = ({ fixtures, pixelLength, bpm, color }: PixelChaseArgs) => {
   const animation = new DMX.Animation({ loop: 4 })
   const pixels = pixelsFromFixtures(fixtures)
   const beatLength = bpmToMs(bpm)
@@ -72,7 +103,7 @@ export const pixelChase = ({ fixtures, pixelLength, bpm, color }) => {
   return animation
 }
 
-export const changeColor = ({ fixtures, color, duration }) => {
+export const changeColor = ({ fixtures, color, duration }: ChangeColorArgs) => {
   const animation = new DMX.Animation()
   const pixels = pixelsFromFixtures(fixtures);
   const dmxValues = pixels.reduce((acc, pixel) => {
@@ -86,12 +117,12 @@ export const changeColor = ({ fixtures, color, duration }) => {
   return animation
 }
 
-export const expand = ({ fixtures, color, duration, pxPerStep, bpm }) => {
+export const expand = ({ fixtures, pxPerStep, bpm }: ExpandArgs) => {
   // Only supporting even numbers of pixels for now
   const animation = new DMX.Animation()
   const stepLength = bpmToMs(bpm)
 
-  const dmxValuesForFixture = (fixture, start, stop) => {
+  const dmxValuesForFixture = (fixture: Ax1Fixture, start: number, stop: number) => {
     let dmxVals = {}
     const pixels = pixelsFromFixture(fixture)
     const on = pixels.slice(start, stop)
@@ -164,16 +195,25 @@ export const fadeColor = ({ fixtures, color, bpm }) => {
     acc[pixel.Green] = color.g
     acc[pixel.Blue] = color.b
     acc[pixel.White] = color.w
+    return acc
   }, {})
   animation.add(dmxValues, msPerBeat * 4)
 }
 
-export default {
+const animations = {
+  changeColor,
+  dim,
   expand,
+  fadeColor,
   fourByFourStrobe,
   pixelChase,
-  changeColor,
-  on,
   off,
-  dim
+  on,
 }
+
+export const animationIdsToNames = Object.keys(animations).reduce((acc, key, idx) => {
+  acc[idx + 1] = key
+  return acc
+}, {})
+
+export default animations

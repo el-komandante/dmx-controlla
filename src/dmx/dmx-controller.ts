@@ -1,12 +1,14 @@
 import DMX from "dmx";
-import { fixtures } from "./devices.js"
+import { Ax1FixtureSet, fixtures } from "./devices.js"
 import animations from "./animations.js"
 
 export class DmxController {
+  private dmx: DMX;
+  private universe;
+  private fixtures: Ax1FixtureSet
+  
   constructor() {
-    this.animations = animations
     this.fixtures = fixtures
-    this.bpm = 128
   }
 
   start() {
@@ -19,23 +21,9 @@ export class DmxController {
     this.universe.updateAll(0)
   }
 
-  changeColor(r, g, b, w, duration) {
-
-  }
-
-  runLoop(iterations) {
-    if (iterations) {
-
-    }
-  }
-
-  setBpm(bpm) {
-    this.bpm = bpm
-  }
-
-  runAnimation({ animationName, args }, onFinish) {
+  runAnimation({ animationName, args }, onFinish?: () => void) {
     this.reset()
-    const animation = this.animations[animationName]({
+    const animation = animations[animationName]({
       fixtures: this.fixtures,
       ...args
     })

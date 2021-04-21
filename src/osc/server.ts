@@ -1,11 +1,11 @@
 import { Server } from "node-osc"
 
-interface OscMessage {
+export interface OscMessage {
   address: string;
   data: boolean | number | string
 }
 
-type OscHandlerFunc = (msg: OscMessage) => void;
+export type OscHandlerFunc = (msg: OscMessage) => void;
 
 export class OscServer {
   public addr: string;

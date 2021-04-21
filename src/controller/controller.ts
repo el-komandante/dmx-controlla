@@ -1,32 +1,36 @@
-// {
-//   animationName: string,
-//   iterations: number,
-//   args: animationArgs,
-//   onFinish: function,
-//   bars,
-//   barsRemaining: number 1-4,
-//   type: AnimationType,
-//   color: rgb
-// }
+import { DmxController } from "../dmx"
+import { AnimationArgs } from "../dmx/animations"
+import { OscMessage, OscServer } from "../osc";
 
-const AnimationType = {
-  Loop: "loop",
-  Accent: "accent"
+interface Animation {
+  animationName: string;
+  args: Omit<AnimationArgs, "fixtures">;
+  type: AnimationType;
+}
+
+enum AnimationType {
+  Loop = "loop",
+  Accent = "accent"
 }
 
 export class LightingController {
-  constructor(dmxController, oscServer) {
+  private dmxController: DmxController = null;
+  private oscServer: OscServer = null;
+  private currentAnimation: Animation | null = null;
+  private currentlyRunningAnimation: any = null;
+  private nextAnimation: Animation | null = null;
+  private nextAnimationQueued = false;
+  private masterBrightness: number;
+  private bpm: number;
+  private bar: number;
+
+  constructor(dmxController: DmxController, oscServer: OscServer) {
     this.dmxController = dmxController
     this.oscServer = oscServer
-    this.animationQueue = []
     this.currentAnimation = null
     this.currentlyRunningAnimation = null
-    this.prevAnimation = null
-    this.color = [0, 0, 0, 0] // rgbw
     this.masterBrightness = 0
     this.bpm = 135
-    this.animationsRunning = false
-    this.accentAnimationNext = false
     this.bar = 1
   }
 
@@ -57,17 +61,14 @@ export class LightingController {
     this.startAnimationLoop()
   }
 
-  queueAnimation = (animation) => {
-    this.animationQueue.unshift(animation)
-  }
-
   maybeRunAccentAnimation = () => {
     if (this.nextAnimation && this.nextAnimation.type === AnimationType.Accent) {
         this.currentlyRunningAnimation.stop()
-        this.currentlyRunningAnimation = this.dmxController.runAnimation(this.nextAnimation)
-        this.dmxController.nextAnimation = null
-        this.nextAnimationQueued = false
-      this.nextAnimationQueued = true
+        this.currentlyRunningAnimation = this.dmxController.runAnimation(this.nextAnimation, () => {
+          this.nextAnimationQueued = false
+        })
+        this.nextAnimation = null
+        this.nextAnimationQueued = true
     } else {
       this.repeatCurrentAnimation()
     }
@@ -102,8 +103,8 @@ export class LightingController {
     this.startAnimationLoop()
   }
 
-  handleSelectAnimation = msg => {
-    console.log(msg)
+  handleSelectAnimation = (_msg: OscMessage) => {
+    console.log(_msg)
     const color = {
       r: 0,
       g: 0,
@@ -117,7 +118,7 @@ export class LightingController {
     }
   }
 
-  handleUpdateBpm = msg => {
+  handleUpdateBpm = (msg: OscMessage) => {
     this.bpm = msg.data
   }
 

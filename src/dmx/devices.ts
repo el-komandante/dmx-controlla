@@ -11,6 +11,10 @@ export interface Ax1Pixel {
 export interface Ax1Fixture {
   [pixelName: string]: Ax1Pixel
 }
+
+export interface Ax1FixtureSet {
+  [key: string]: Ax1Fixture
+}
 const generateAX1Pixel = (pixelNum: number, startAddress: number): Ax1Pixel => {
   const startAddressOffset = startAddress - 1
   const pixelNumOffset = (pixelNum - 1) * 6
@@ -33,7 +37,7 @@ const generateAX1 = (startAddress: number): Ax1Fixture => {
   return ax1
 }
 
-export const fixtures = {
+export const fixtures: Ax1FixtureSet = {
   PixelBar1: generateAX1(1),
   PixelBar2: generateAX1(97)
 }
