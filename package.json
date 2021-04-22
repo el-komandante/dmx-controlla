@@ -12,7 +12,8 @@
   "license": "ISC",
   "dependencies": {
     "dmx": "^0.2.5",
-    "node-osc": "^5.2.3"
+    "node-osc": "^5.2.3",
+    "osc": "^2.4.1"
   },
   "type": "module",
   "devDependencies": {

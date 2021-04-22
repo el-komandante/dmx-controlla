@@ -6,7 +6,7 @@ export class DmxController {
   private dmx: DMX;
   private universe;
   private fixtures: Ax1FixtureSet
-  
+
   constructor() {
     this.fixtures = fixtures
   }
@@ -22,13 +22,12 @@ export class DmxController {
   }
 
   runAnimation({ animationName, args }, onFinish?: () => void) {
-    this.reset()
     const animation = animations[animationName]({
       fixtures: this.fixtures,
       ...args
     })
     console.log(`Name: ${animationName}`, args)
-    animation.run(this.universe, onFinish)
+    animation.run(this.universe)
     return animation
   }
 }

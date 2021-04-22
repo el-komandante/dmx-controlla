@@ -10,7 +10,7 @@ export interface FourByFourStrobeArgs {
 
 export interface PixelChaseArgs {
   fixtures: Ax1FixtureSet;
-  pixelLength: number;
+  pixelLength?: number;
   bpm: number;
   color: Color;
 }
@@ -24,13 +24,14 @@ export interface ChangeColorArgs {
 export interface ExpandArgs {
   fixtures: Ax1FixtureSet;
   bpm: number;
-  pxPerStep: number;
+  pxPerStep?: number;
+  color: Color;
 }
 
 export type AnimationArgs = FourByFourStrobeArgs
-| PixelChaseArgs
-| ChangeColorArgs
-| ExpandArgs
+// | PixelChaseArgs
+// | ChangeColorArgs
+// | ExpandArgs
 
 
 export const fourByFourStrobe = ({ fixtures, bpm, color }: FourByFourStrobeArgs) => {
@@ -61,7 +62,7 @@ export const fourByFourStrobe = ({ fixtures, bpm, color }: FourByFourStrobeArgs)
   return animation
 }
 
-export const pixelChase = ({ fixtures, pixelLength, bpm, color }: PixelChaseArgs) => {
+export const pixelChase = ({ fixtures, pixelLength = 4, bpm, color }: PixelChaseArgs) => {
   const animation = new DMX.Animation({ loop: 4 })
   const pixels = pixelsFromFixtures(fixtures)
   const beatLength = bpmToMs(bpm)
@@ -117,7 +118,7 @@ export const changeColor = ({ fixtures, color, duration }: ChangeColorArgs) => {
   return animation
 }
 
-export const expand = ({ fixtures, pxPerStep, bpm }: ExpandArgs) => {
+export const expand = ({ fixtures, pxPerStep = 4, bpm, color }: ExpandArgs) => {
   // Only supporting even numbers of pixels for now
   const animation = new DMX.Animation()
   const stepLength = bpmToMs(bpm)
@@ -129,10 +130,19 @@ export const expand = ({ fixtures, pxPerStep, bpm }: ExpandArgs) => {
     const off = [...pixels.slice(0, start), ...pixels.slice(stop, pixels.length)]
     on.forEach(pixel => {
       dmxVals[pixel.Dimmer] = 255
+      dmxVals[pixel.Red] = color.r
+      dmxVals[pixel.Green] = color.g
+      dmxVals[pixel.Blue] = color.b
+      dmxVals[pixel.White] = color.w
     })
     off.forEach(pixel => {
       dmxVals[pixel.Dimmer] = 0
+      dmxVals[pixel.Red] = color.r
+      dmxVals[pixel.Green] = color.g
+      dmxVals[pixel.Blue] = color.b
+      dmxVals[pixel.White] = color.w
     })
+
     return dmxVals
   }
 
