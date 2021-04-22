@@ -1,7 +1,7 @@
 import { DmxController } from "../dmx"
 import { AnimationArgs, animationIdsToNames } from "../dmx/animations"
 import { Color } from "../dmx/utils";
-import { OscMessage, OscStringMessage, OscNumericMessage, OscServer } from "../osc";
+import { OscStringMessage, OscNumericMessage, OscServer } from "../osc";
 
 interface Animation {
   animationName: string;
