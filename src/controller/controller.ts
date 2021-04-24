@@ -1,7 +1,7 @@
 import { DmxController } from "../dmx"
-import { AnimationArgs, animationIdsToNames } from "../dmx/animations"
+import { AnimationArgs } from "../dmx/animations"
 import { Color } from "../dmx/utils";
-import { OscStringMessage, OscNumericMessage, OscServer } from "../osc";
+import { OscStringMessage, OscNumericMessage, OscServer, OscArrayMessage } from "../osc";
 
 interface Animation {
   animationName: string;
@@ -23,36 +23,34 @@ export class LightingController {
   private nextAnimation: Animation | null = null;
   private nextAnimationQueued = false;
   private masterBrightness: number;
-  private bpm: number;
+  private changeColorQueued = false;
+  private bpm: number = 135;
   private bar: number;
   private color: Color = {
-    r: 255,
+    r: 0,
     g: 0,
-    b: 0,
+    b: 255,
     w: 0
   }
 
   constructor(dmxController: DmxController, oscServer: OscServer) {
     this.dmxController = dmxController
     this.oscServer = oscServer
-    this.currentAnimation = null
+    this.currentAnimation = {
+      animationName: "pixelChase",
+      args: { bpm: this.bpm, color: this.color},
+      type: AnimationType.Loop
+    }
     this.currentlyRunningAnimation = null
     this.masterBrightness = 0
     this.bpm = 135
-    this.bar = 1
+    this.bar = 0
   }
 
   start() {
     this.oscServer.start()
     this.addOscHandlers()
     this.dmxController.start()
-
-    const color = {
-      r: 0,
-      g: 0,
-      b: 255,
-      w: 0
-    }
   }
 
   maybeRunAccentAnimation = () => {
@@ -76,6 +74,15 @@ export class LightingController {
       this.nextAnimation = null
     } else {
       this.repeatCurrentAnimation()
+    }
+  }
+
+  maybeChangeColor = () => {
+    if (this.changeColorQueued) {
+      this.dmxController.runAnimation({
+        animationName: "fadeColor",
+        args: { bpm: this.bpm }
+      })
     }
   }
 
@@ -105,9 +112,6 @@ export class LightingController {
     }
   }
 
-  handleStart = () => {
-  }
-
   handleSelectLoopedAnimation = (msg: OscStringMessage) => {
     this.nextAnimation = {
       animationName: msg.data,
@@ -128,15 +132,29 @@ export class LightingController {
     this.bpm = msg.data
   }
 
+  handleChangeColor = (msg: any) => {
+    // console.log(msg, "handlechangecolor")
+    if (msg.data.length !== 4) {
+      return
+    }
+    const [ r, g, b, w ] = msg.data
+    const color: Color = { r, g, b, w }
+    console.log(color)
+    this.color = color
+    if (this.currentAnimation) {
+      this.currentAnimation = {...this.currentAnimation, args: { ...this.currentAnimation.args, color }}
+    }
+    if (this.nextAnimation) {
+      this.nextAnimation = { ...this.nextAnimation, args: { ...this.nextAnimation.args, color } }
+    }
+  }
+
   addOscHandlers() {
     // this.oscServer.addMessageHandler("/dmx-controlla/start", this.handleStart)
     this.oscServer.addMessageHandler("/dmx-controlla/downbeat", this.handleDownbeat)
     this.oscServer.addMessageHandler("/dmx-controlla/bpm", this.handleUpdateBpm)
     this.oscServer.addMessageHandler("/dmx-controlla/animation/loop", this.handleSelectLoopedAnimation)
     this.oscServer.addMessageHandler("/dmx-controlla/animation/accent", this.handleSelectAccentAnimation)
-
-
-    this.oscServer.addMessageHandler("/dmx-controlla/color", msg => {
-    })
+    this.oscServer.addMessageHandler("/dmx-controlla/color", this.handleChangeColor)
   }
 }

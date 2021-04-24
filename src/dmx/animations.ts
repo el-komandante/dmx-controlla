@@ -1,6 +1,6 @@
 import DMX from "dmx";
 import { Ax1Fixture, Ax1FixtureSet } from "./devices.js";
-import { bpmToMs, pixelsFromFixtures, pixelsFromFixture, Color } from "./utils.js"
+import { bpmToMs, pixelsFromFixtures, pixelsFromFixture, Color, setPixelColor } from "./utils.js"
 
 export interface FourByFourStrobeArgs {
   fixtures: Ax1FixtureSet;
@@ -25,6 +25,12 @@ export interface ExpandArgs {
   fixtures: Ax1FixtureSet;
   bpm: number;
   pxPerStep?: number;
+  color: Color;
+}
+
+export interface SlideArgs {
+  fixtures: Ax1FixtureSet;
+  bpm: number;
   color: Color;
 }
 
@@ -122,34 +128,41 @@ export const expand = ({ fixtures, pxPerStep = 4, bpm, color }: ExpandArgs) => {
   // Only supporting even numbers of pixels for now
   const animation = new DMX.Animation()
   const stepLength = bpmToMs(bpm)
+  const allOff = Object.values(fixtures).reduce((acc, fixture) => {
+    fixture.pixels.forEach((pixel) => {
+      acc[pixel.Dimmer] = 0
+    })
+    return acc
+  }, {})
+
+  animation.add(allOff, stepLength / 4)
+  animation.delay(stepLength - (stepLength / 4))
 
   const dmxValuesForFixture = (fixture: Ax1Fixture, start: number, stop: number) => {
     let dmxVals = {}
     const pixels = pixelsFromFixture(fixture)
     const on = pixels.slice(start, stop)
-    const off = [...pixels.slice(0, start), ...pixels.slice(stop, pixels.length)]
+    const off = start === 0 && stop === 15 ? [] : [...pixels.slice(0, start), ...pixels.slice(stop, pixels.length)]
+    console.log(on.length, off.length)
+
     on.forEach(pixel => {
+      
       dmxVals[pixel.Dimmer] = 255
-      dmxVals[pixel.Red] = color.r
-      dmxVals[pixel.Green] = color.g
-      dmxVals[pixel.Blue] = color.b
-      dmxVals[pixel.White] = color.w
+      dmxVals = { ...dmxVals, ...setPixelColor(pixel, color) }
     })
     off.forEach(pixel => {
       dmxVals[pixel.Dimmer] = 0
-      dmxVals[pixel.Red] = color.r
-      dmxVals[pixel.Green] = color.g
-      dmxVals[pixel.Blue] = color.b
-      dmxVals[pixel.White] = color.w
+      dmxVals = { ...dmxVals, ...setPixelColor(pixel, color) }
     })
 
     return dmxVals
   }
 
-  let start = (16 / 2)
-  let stop = (16 / 2) + 1
+  let start = 6
+  let stop = 10
 
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < 3; i++) {
+
     const dmxValuesForStep = {}
     Object.values(fixtures).forEach((fixture) => {
       Object.assign(dmxValuesForStep, dmxValuesForFixture(fixture, start, stop))
@@ -157,8 +170,8 @@ export const expand = ({ fixtures, pxPerStep = 4, bpm, color }: ExpandArgs) => {
     animation.add(dmxValuesForStep, stepLength / 4)
     animation.delay(stepLength - (stepLength / 4))
     // animation.add(dmxValuesForStep, stepLength)
-    start -= pxPerStep / 2
-    stop += pxPerStep / 2
+    start -= 3
+    stop += 3
   }
   return animation
 }
@@ -208,6 +221,43 @@ export const fadeColor = ({ fixtures, color, bpm }) => {
     return acc
   }, {})
   animation.add(dmxValues, msPerBeat * 4)
+  return animation
+}
+
+export const slide = ({ fixtures, color, bpm }: SlideArgs) => {
+  const animation = new DMX.Animation()
+  const msPerBeat = bpmToMs(bpm)
+  const fixturesArray = Object.values(fixtures)
+
+  // Animate pixels in
+  for (let i = 0; i < fixturesArray[0].pixelLength; i++) {
+    const dmxVals = fixturesArray.reduce((acc, fixture) => {
+      fixture.pixels.forEach((pixel, idx) => {
+        if (idx <= i) { // Animate in pixels from the bottom
+          acc[pixel.Dimmer] = 255
+          acc = { ...acc, ...setPixelColor(pixel, color)}
+        } else {
+          acc[pixel.Dimmer] = 0
+        }
+      })
+      return acc
+    }, {})
+    animation.add(dmxVals, msPerBeat / 8)
+  }
+
+  // Animate pixels out
+  for (let i = 0; i < fixturesArray[0].pixelLength; i++) {
+    const dmxVals = fixturesArray.reduce((acc, fixture) => {
+      fixture.pixels.forEach((pixel, idx) => {
+        if (idx <= i) { // Animate pixels out from the bottom
+          acc[pixel.Dimmer] = 0
+        }
+      })
+      return acc
+    }, {})
+    animation.add(dmxVals, msPerBeat / 8)
+  }
+  return animation
 }
 
 const animations = {
@@ -219,6 +269,7 @@ const animations = {
   pixelChase,
   off,
   on,
+  slide
 }
 
 export const animationIdsToNames = Object.keys(animations).reduce((acc, key, idx) => {

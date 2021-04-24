@@ -21,6 +21,10 @@ export interface OscNumericMessage extends OscMessage {
   data: number;
 }
 
+export interface OscArrayMessage extends OscMessage {
+  data: any[]
+}
+
 export interface Message {
   address: string;
   data: OscData;
@@ -77,14 +81,19 @@ export class OscServer {
   }
 
   handleOscMessage = (oscMsg: OscMessage) => {
-    console.log(oscMsg)
     const { address, args: [data] } = oscMsg
     this.runMessageHandlers({ address, data })
   }
 
-  handleOscBundle = ({ timetag, packets }: OscBundle) => {
+  handleOscBundle = ({ timetag: _, packets }: OscBundle) => {
+    let data;
     const [ oscMsg ] = packets
-    const { address, args: [data] } = oscMsg
+    const { address, args } = oscMsg
+    if (args.length > 1) {
+      data = args
+    } else {
+      data = args[0]
+    }
     this.runMessageHandlers({ address, data })
   }
 
