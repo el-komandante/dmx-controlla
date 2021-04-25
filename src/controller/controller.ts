@@ -14,6 +14,13 @@ enum AnimationType {
   Accent = "accent"
 }
 
+const DEFAULT_COLOR: Color = {
+  r: 0,
+  g: 0,
+  b: 255,
+  w: 0
+}
+
 export class LightingController {
   private dmxController: DmxController = null;
   private oscServer: OscServer = null;
@@ -26,12 +33,8 @@ export class LightingController {
   private changeColorQueued = false;
   private bpm: number = 135;
   private bar: number;
-  private color: Color = {
-    r: 0,
-    g: 0,
-    b: 255,
-    w: 0
-  }
+  private color: Color = DEFAULT_COLOR
+  private nextColor: Color | null = null
 
   constructor(dmxController: DmxController, oscServer: OscServer) {
     this.dmxController = dmxController
@@ -78,11 +81,13 @@ export class LightingController {
   }
 
   maybeChangeColor = () => {
-    if (this.changeColorQueued) {
+    if (this.nextColor) {
       this.dmxController.runAnimation({
         animationName: "fadeColor",
-        args: { bpm: this.bpm }
+        args: { bpm: this.bpm, bars: 0 }
       })
+      this.color = this.nextColor
+      this.nextColor = null
     }
   }
 
@@ -103,6 +108,7 @@ export class LightingController {
       this.repeatCurrentAnimation()
     } else {
       this.maybeRunNextAnimation()
+      this.maybeChangeColor()
     }
 
     if(this.bar === 4) {
@@ -133,20 +139,19 @@ export class LightingController {
   }
 
   handleChangeColor = (msg: any) => {
-    // console.log(msg, "handlechangecolor")
     if (msg.data.length !== 4) {
       return
     }
     const [ r, g, b, w ] = msg.data
     const color: Color = { r, g, b, w }
-    console.log(color)
-    this.color = color
-    if (this.currentAnimation) {
-      this.currentAnimation = {...this.currentAnimation, args: { ...this.currentAnimation.args, color }}
-    }
-    if (this.nextAnimation) {
-      this.nextAnimation = { ...this.nextAnimation, args: { ...this.nextAnimation.args, color } }
-    }
+    this.nextColor = color
+
+    // if (this.currentAnimation) {
+    //   this.currentAnimation = {...this.currentAnimation, args: { ...this.currentAnimation.args, color }}
+    // }
+    // if (this.nextAnimation) {
+    //   this.nextAnimation = { ...this.nextAnimation, args: { ...this.nextAnimation.args, color } }
+    // }
   }
 
   addOscHandlers() {

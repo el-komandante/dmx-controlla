@@ -51,18 +51,10 @@ export const fourByFourStrobe = ({ fixtures, bpm, color }: FourByFourStrobeArgs)
   const onTime = beatLength / 8
   const offTime = beatLength - (onTime * 2)
   const onValues = pixels.reduce((acc, pixel) => {
-    acc[pixel.Red] = color.r
-    acc[pixel.Green] = color.g
-    acc[pixel.Blue] = color.b
-    acc[pixel.White] = color.w
     acc[pixel.Dimmer] = 255
     return acc
   }, {})
   const offValues = pixels.reduce((acc, pixel) => {
-    acc[pixel.Red] = color.r
-    acc[pixel.Green] = color.g
-    acc[pixel.Blue] = color.b
-
     acc[pixel.Dimmer] = 0
     return acc
   }, {})
@@ -81,9 +73,6 @@ export const pixelChase = ({ fixtures, pixelLength = 4, bpm, color }: PixelChase
   let end = start + pixelLength
   pixels.forEach(() => {
     const dmxValues = pixels.reduce((acc, pixel, idx) => {
-      acc[pixel.Red] = color.r
-      acc[pixel.Green] = color.g
-      acc[pixel.Blue] = color.b
       if (end > pixels.length - 1) {
         end = 0
       }
@@ -114,20 +103,6 @@ export const pixelChase = ({ fixtures, pixelLength = 4, bpm, color }: PixelChase
   return animation
 }
 
-export const changeColor = ({ fixtures, color, duration }: ChangeColorArgs) => {
-  const animation = new DMX.Animation()
-  const pixels = pixelsFromFixtures(fixtures);
-  const dmxValues = pixels.reduce((acc, pixel) => {
-    acc[pixel.Red] = color.r
-    acc[pixel.Green] = color.g
-    acc[pixel.Blue] = color.b
-    acc[pixel.White] = color.w
-    return acc
-  }, {})
-  animation.add(dmxValues, duration)
-  return animation
-}
-
 export const expand = ({ fixtures, pxPerStep = 4, bpm, color }: ExpandArgs) => {
   // Only supporting even numbers of pixels for now
   const animation = new DMX.Animation()
@@ -147,16 +122,13 @@ export const expand = ({ fixtures, pxPerStep = 4, bpm, color }: ExpandArgs) => {
     const pixels = pixelsFromFixture(fixture)
     const on = pixels.slice(start, stop)
     const off = start === 0 && stop === 15 ? [] : [...pixels.slice(0, start), ...pixels.slice(stop, pixels.length)]
-    console.log(on.length, off.length)
 
     on.forEach(pixel => {
       
       dmxVals[pixel.Dimmer] = 255
-      dmxVals = { ...dmxVals, ...setPixelColor(pixel, color) }
     })
     off.forEach(pixel => {
       dmxVals[pixel.Dimmer] = 0
-      dmxVals = { ...dmxVals, ...setPixelColor(pixel, color) }
     })
 
     return dmxVals
@@ -173,7 +145,6 @@ export const expand = ({ fixtures, pxPerStep = 4, bpm, color }: ExpandArgs) => {
     })
     animation.add(dmxValuesForStep, stepLength / 4)
     animation.delay(stepLength - (stepLength / 4))
-    // animation.add(dmxValuesForStep, stepLength)
     start -= 3
     stop += 3
   }
@@ -224,10 +195,12 @@ export const blackout = ({ fixtures }): BlackoutArgs => {
   return animation
 }
 
-export const fadeColor = ({ fixtures, color, bpm }) => {
+export const fadeColor = ({ fixtures, color, bpm, bars }) => {
   const animation = new DMX.Animation()
   const pixels = pixelsFromFixtures(fixtures)
   const msPerBeat = bpmToMs(bpm)
+  const duration = msPerBeat * bars * 4
+
   const dmxValues = pixels.reduce((acc, pixel) => {
     acc[pixel.Red] = color.r
     acc[pixel.Green] = color.g
@@ -235,7 +208,9 @@ export const fadeColor = ({ fixtures, color, bpm }) => {
     acc[pixel.White] = color.w
     return acc
   }, {})
-  animation.add(dmxValues, msPerBeat * 4)
+
+  animation.add(dmxValues, duration === 0 ? 1 : duration)
+
   return animation
 }
 
@@ -250,7 +225,6 @@ export const slide = ({ fixtures, color, bpm }: SlideArgs) => {
       fixture.pixels.forEach((pixel, idx) => {
         if (idx <= i) { // Animate in pixels from the bottom
           acc[pixel.Dimmer] = 255
-          acc = { ...acc, ...setPixelColor(pixel, color)}
         } else {
           acc[pixel.Dimmer] = 0
         }
@@ -276,7 +250,6 @@ export const slide = ({ fixtures, color, bpm }: SlideArgs) => {
 }
 
 const animations = {
-  changeColor,
   dim,
   expand,
   fadeColor,
