@@ -34,6 +34,10 @@ export interface SlideArgs {
   color: Color;
 }
 
+export interface BlackoutArgs {
+  fixtures: Ax1FixtureSet;
+}
+
 export type AnimationArgs = FourByFourStrobeArgs
 // | PixelChaseArgs
 // | ChangeColorArgs
@@ -206,6 +210,17 @@ export const dim = ({ fixtures, duration, brightness }) => {
     return acc
   }, {})
   animation.add(dmxValues, duration)
+  return animation
+}
+
+export const blackout = ({ fixtures }): BlackoutArgs => {
+  const animation = new DMX.Animation()
+  const pixels = pixelsFromFixtures(fixtures)
+  const dmxValues = pixels.reduce((acc, pixel) => {
+    acc[pixel.Dimmer] = 0
+    return acc
+  })
+  animation.add(dmxValues, 1)
   return animation
 }
 

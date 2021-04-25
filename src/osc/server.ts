@@ -1,4 +1,3 @@
-import { Server } from "node-osc"
 import osc from "osc"
 
 export interface OscMessage {
@@ -35,10 +34,10 @@ export type MessageHandlerFunc = (msg: Message) => void;
 export class OscServer {
   public addr: string;
   public port: string;
-  public server: Server;
+  public server;
   public handlers: { [key: string]: [MessageHandlerFunc] }
 
-  constructor(addr: string, port) {
+  constructor(addr: string, port: string) {
     this.addr = addr
     this.port = port
     this.server = null
@@ -46,11 +45,6 @@ export class OscServer {
   }
 
   start() {
-    // this.server = new Server(this.port, this.addr, () => {
-    //   console.log('OSC Server is listening');
-    // });
-    // this.server.on("message", this.handleMessage)
-
     this.server = new osc.UDPPort({
       localAddress: "0.0.0.0",
       localPort: this.port,
@@ -63,9 +57,6 @@ export class OscServer {
     this.server.on("ready", () => {
       console.log(`OSC Server is listening at ${this.addr} on port ${this.port}`)
     })
-    // this.server.on("raw", data => {
-    //   console.log(data)
-    // })
 
     this.server.on("error", (error) => {
       console.log(error)
