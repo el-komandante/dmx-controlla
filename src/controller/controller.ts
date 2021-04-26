@@ -160,9 +160,9 @@ export class LightingController {
     }
   }
 
-  handleUpdateBpm = (msg: OscNumericMessage) => {
-    this.bpm = msg.data
-  }
+  // handleUpdateBpm = (msg: OscNumericMessage) => {
+  //   this.bpm = msg.data
+  // }
 
   handleChangeColor = (msg: any) => {
     if (msg.data.length !== 5) {
@@ -175,9 +175,17 @@ export class LightingController {
     console.log("color changing...")
   }
 
+  handleBeat = (msg: any) => {
+    const { bpm, currentTime, nextCueTime } = JSON.parse(msg.data)
+    this.bpm = bpm
+    this.currentTime = currentTime
+    this.nextCueTime = nextCueTime
+  }
+
   addOscHandlers() {
     this.oscServer.addMessageHandler("/dmx-controlla/downbeat", this.handleDownbeat)
-    this.oscServer.addMessageHandler("/dmx-controlla/bpm", this.handleUpdateBpm)
+    // this.oscServer.addMessageHandler("/dmx-controlla/bpm", this.handleUpdateBpm)
+    this.oscServer.addMessageHandler("/dmx-controlla/beat", this.handleBeat)
     this.oscServer.addMessageHandler("/dmx-controlla/animation/loop", this.handleSelectLoopedAnimation)
     this.oscServer.addMessageHandler("/dmx-controlla/animation/accent", this.handleSelectAccentAnimation)
     this.oscServer.addMessageHandler("/dmx-controlla/color", this.handleChangeColor)
