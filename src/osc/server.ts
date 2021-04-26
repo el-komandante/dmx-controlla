@@ -72,6 +72,7 @@ export class OscServer {
   }
 
   handleOscMessage = (oscMsg: OscMessage) => {
+    console.log(oscMsg)
     const { address, args: [data] } = oscMsg
     this.runMessageHandlers({ address, data })
   }

@@ -2,6 +2,7 @@ import { DmxController } from "../dmx"
 import { AnimationArgs } from "../dmx/animations"
 import { Color } from "../dmx/utils";
 import { OscStringMessage, OscNumericMessage, OscServer, OscArrayMessage } from "../osc";
+import { barsUntilCuePoint } from "./utils"
 
 interface Animation {
   animationName: string;
@@ -12,6 +13,16 @@ interface Animation {
 enum AnimationType {
   Loop = "loop",
   Accent = "accent"
+}
+
+enum ColorFadeTime {
+  CuePoint = 1000,
+  Immediate = 0,
+  Bars4 = 4,
+  Bars8 = 8,
+  Bars16 = 16,
+  Bars32 = 32,
+  Bars64 = 64
 }
 
 const DEFAULT_COLOR: Color = {
@@ -35,6 +46,9 @@ export class LightingController {
   private bar: number;
   private color: Color = DEFAULT_COLOR
   private nextColor: Color | null = null
+  private colorFadeTime: ColorFadeTime = ColorFadeTime.Bars4
+  private nextCueTime: number
+  private currentTime: number
 
   constructor(dmxController: DmxController, oscServer: OscServer) {
     this.dmxController = dmxController
@@ -82,9 +96,21 @@ export class LightingController {
 
   maybeChangeColor = () => {
     if (this.nextColor) {
+      let bars: number
+      switch (this.colorFadeTime) {
+        case ColorFadeTime.CuePoint:
+          bars = barsUntilCuePoint({
+            cueTime: this.nextCueTime,
+            currentTime: this.currentTime,
+            bpm: this.bpm
+          })
+          break
+        default:
+          bars = this.colorFadeTime
+      }
       this.dmxController.runAnimation({
         animationName: "fadeColor",
-        args: { bpm: this.bpm, bars: 0 }
+        args: { bpm: this.bpm, bars, color: this.nextColor }
       })
       this.color = this.nextColor
       this.nextColor = null
@@ -139,13 +165,14 @@ export class LightingController {
   }
 
   handleChangeColor = (msg: any) => {
-    if (msg.data.length !== 4) {
+    if (msg.data.length !== 5) {
       return
     }
-    const [ r, g, b, w ] = msg.data
+    const [ r, g, b, w, fadeTime ] = msg.data
     const color: Color = { r, g, b, w }
     this.nextColor = color
-
+    this.colorFadeTime = fadeTime
+    console.log("color changing...")
     // if (this.currentAnimation) {
     //   this.currentAnimation = {...this.currentAnimation, args: { ...this.currentAnimation.args, color }}
     // }
