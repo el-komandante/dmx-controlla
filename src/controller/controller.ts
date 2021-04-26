@@ -173,16 +173,9 @@ export class LightingController {
     this.nextColor = color
     this.colorFadeTime = fadeTime
     console.log("color changing...")
-    // if (this.currentAnimation) {
-    //   this.currentAnimation = {...this.currentAnimation, args: { ...this.currentAnimation.args, color }}
-    // }
-    // if (this.nextAnimation) {
-    //   this.nextAnimation = { ...this.nextAnimation, args: { ...this.nextAnimation.args, color } }
-    // }
   }
 
   addOscHandlers() {
-    // this.oscServer.addMessageHandler("/dmx-controlla/start", this.handleStart)
     this.oscServer.addMessageHandler("/dmx-controlla/downbeat", this.handleDownbeat)
     this.oscServer.addMessageHandler("/dmx-controlla/bpm", this.handleUpdateBpm)
     this.oscServer.addMessageHandler("/dmx-controlla/animation/loop", this.handleSelectLoopedAnimation)
